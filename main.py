@@ -24,11 +24,11 @@ app = FastAPI(
     description="Accepts an image and returns objects and their brands using Gemini model.",
     version="1.0.0"
 )
-
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 # Allow cross-origin requests if needed
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Update to specific domains in prod
+    allow_origins=[origin.strip() for origin in allowed_origins], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

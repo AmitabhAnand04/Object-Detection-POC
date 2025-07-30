@@ -12,6 +12,10 @@ if not GOOGLE_API_KEY:
     raise EnvironmentError("GOOGLE_API_KEY is not set in the environment.")
 
 genai.configure(api_key=GOOGLE_API_KEY)
+SYSTEM_INSTRUCTION_PROMPT = os.getenv("SYSTEM_INSTRUCTION_PROMPT")
+if not SYSTEM_INSTRUCTION_PROMPT:
+    raise EnvironmentError("SYSTEM_INSTRUCTION_PROMPT is not set in the environment.")
+MODEL = genai.GenerativeModel('gemini-2.5-flash', system_instruction=SYSTEM_INSTRUCTION_PROMPT)
 
 def identify_objects_direct_from_file(file: BinaryIO):
     """
@@ -23,25 +27,10 @@ def identify_objects_direct_from_file(file: BinaryIO):
     Returns:
         dict: Parsed JSON response from Gemini model.
     """
-    prompt_text = """
-Carefully analyze the image and identify all discernible objects inside Refrigerator. For each object, determine its label (name) and the associated brand if it is clearly visible. Return the output strictly in the following JSON format:
-
-[
-  {
-    "object": "<name of the object>",
-    "label": "<brand name or null>"
-  },
-  ...
-]
-
-Ensure the JSON is well-structured and contains all relevant objects visible in the image. Use null if the brand is not identifiable.
-"""
-
     try:
         print("Started identifying objects and brands in the image.")
         image = Image.open(file)
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content([prompt_text, image])
+        response = MODEL.generate_content([image])
         print("Got Response!!")  # Debug output
         # Clean and convert the string response to JSON
         response_text = response.text.strip("```json").strip("```").strip()
