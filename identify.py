@@ -1,7 +1,8 @@
+import io
 import os
 import google.generativeai as genai
 from dotenv import load_dotenv, find_dotenv
-from PIL import Image
+from PIL import Image, ExifTags
 from typing import BinaryIO
 import json
 
@@ -42,3 +43,72 @@ def identify_objects_direct_from_file(file: BinaryIO):
         raise ValueError("Failed to parse model output as JSON.")
     except Exception as e:
         raise RuntimeError(f"Gemini model failed: {e}")
+
+# def is_original_camera_image(image_bytes: bytes) -> bool:
+#     try:
+#         img = Image.open(io.BytesIO(image_bytes))
+#         exif_data = img._getexif()
+#         if not exif_data:
+#             print("failed at pos 1")
+#             return False  # No EXIF, likely downloaded or edited
+
+#         exif = {
+#             ExifTags.TAGS.get(tag): value
+#             for tag, value in exif_data.items()
+#             if tag in ExifTags.TAGS
+#         }
+
+#         # Check for camera info
+#         make = exif.get("Make", "").strip()
+#         model = exif.get("Model", "").strip()
+#         software = exif.get("Software", "").lower()
+
+#         # Reject if software indicates editing
+#         editing_signatures = ["photoshop", "snapseed", "lightroom", "pixlr", "canva"]
+#         if any(editor in software for editor in editing_signatures):
+#             print("failed at pos 2")
+#             return False
+
+#         # Accept only if camera make & model exist
+#         if make and model:
+#             print("Make "+make+" Model "+model)
+#             return True
+#         print("failed at pos 3")
+#         return False
+#     except Exception:
+#         print("failed at pos 4")
+#         return False
+def is_original_camera_image(file: BinaryIO) -> bool:
+    try:
+        img = Image.open(file)
+        exif_data = img._getexif()
+        if not exif_data:
+            print("failed at pos 1")
+            return False  # No EXIF, likely downloaded or edited
+
+        exif = {
+            ExifTags.TAGS.get(tag): value
+            for tag, value in exif_data.items()
+            if tag in ExifTags.TAGS
+        }
+
+        # Check for camera info
+        make = exif.get("Make", "").strip()
+        model = exif.get("Model", "").strip()
+        software = exif.get("Software", "").lower()
+
+        # Reject if software indicates editing
+        editing_signatures = ["photoshop", "snapseed", "lightroom", "pixlr", "canva"]
+        if any(editor in software for editor in editing_signatures):
+            print("failed at pos 2")
+            return False
+
+        # Accept only if camera make & model exist
+        if make and model:
+            print("Make "+make+" Model "+model)
+            return True
+        print("failed at pos 3")
+        return False
+    except Exception:
+        print("failed at pos 4")
+        return False

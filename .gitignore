@@ -2,3 +2,4 @@ app.py
 .env
 .venv
 __pycache__/
+test.py
