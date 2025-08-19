@@ -1,15 +1,17 @@
 # apis for get_users, get_stores, assigned_visit
 
 from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi.security import HTTPBasicCredentials
 
 from database import connect_to_db
+from service.auth_service import verify_credentials
 
 
 
 user_router = APIRouter()
 
 @user_router.get("/users", summary="Get all users")
-async def get_users():
+async def get_users(_: HTTPBasicCredentials = Depends(verify_credentials)):
     try:
         cursor = connect_to_db()
         if cursor is None:
