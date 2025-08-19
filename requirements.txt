@@ -40,3 +40,8 @@ uritemplate==4.2.0
 urllib3==2.5.0
 uvicorn==0.35.0
 gunicorn
+
+# for db connection
+sqlalchemy
+psycopg2-binary
+asyncpg

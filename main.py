@@ -8,6 +8,8 @@ from identify import identify_objects_direct_from_file, is_original_camera_image
 from typing import List
 import uvicorn
 from dotenv import load_dotenv, find_dotenv
+from routes.auth import auth_router
+from routes.users import user_router
 
 load_dotenv(find_dotenv())
 
@@ -25,6 +27,10 @@ app = FastAPI(
     description="Accepts an image and returns objects and their brands using Gemini model.",
     version="1.0.0"
 )
+
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(user_router, prefix="/user", tags=["gifts"])
+
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 # Allow cross-origin requests if needed
 app.add_middleware(
