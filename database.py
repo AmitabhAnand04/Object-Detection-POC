@@ -11,7 +11,7 @@ def connect_to_db():
         cursor.execute("SELECT version();")
         db_version = cursor.fetchone()
         print(f"Connected to database: {db_version[0]}")
-        return cursor
+        return cursor, connection
     except Exception as e:
         print(f"Error connecting to database: {e}")
         return None
