@@ -28,8 +28,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
-app.include_router(user_router, prefix="/user", tags=["gifts"])
+
 
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 # Allow cross-origin requests if needed
@@ -40,33 +39,34 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.post("/analyze-image", summary="Analyze Image for Objects and Brands")
-async def analyze_image(
-    file: UploadFile = File(...),
-    _: HTTPBasicCredentials = Depends(verify_credentials)
-    ):
-    if file.content_type.split("/")[0] != "image":
-        raise HTTPException(status_code=400, detail="Invalid file type. Please upload an image.")
-    if not is_original_camera_image(file.file):
-        raise HTTPException(
-            status_code=400,
-            detail="Image Rejected! Image must be original from phone camera and unedited."
-        )
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(user_router, prefix="/user", tags=["gifts"])
+# @app.post("/analyze-image", summary="Analyze Image for Objects and Brands")
+# async def analyze_image(
+#     file: UploadFile = File(...),
+#     _: HTTPBasicCredentials = Depends(verify_credentials)
+#     ):
+#     if file.content_type.split("/")[0] != "image":
+#         raise HTTPException(status_code=400, detail="Invalid file type. Please upload an image.")
+#     if not is_original_camera_image(file.file):
+#         raise HTTPException(
+#             status_code=400,
+#             detail="Image Rejected! Image must be original from phone camera and unedited."
+#         )
     
-    # 🔁 Rewind the file pointer before reading again
-    file.file.seek(0)
+#     # 🔁 Rewind the file pointer before reading again
+#     file.file.seek(0)
 
-    try:
-        print("Got the image to indetify objects and brands.")
-        result = identify_objects_direct_from_file(file.file)
-        return {"status": "success", "data": result}
-    except ValueError as ve:
-        raise HTTPException(status_code=500, detail=f"Model response error: {ve}")
-    except RuntimeError as re:
-        raise HTTPException(status_code=500, detail=f"Internal error: {re}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
+#     try:
+#         print("Got the image to indetify objects and brands.")
+#         result = identify_objects_direct_from_file(file.file)
+#         return {"status": "success", "data": result}
+#     except ValueError as ve:
+#         raise HTTPException(status_code=500, detail=f"Model response error: {ve}")
+#     except RuntimeError as re:
+#         raise HTTPException(status_code=500, detail=f"Internal error: {re}")
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
 
 # @app.post("/analyze-image", summary="Analyze Image for Objects and Brands")
 # async def analyze_image(
