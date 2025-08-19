@@ -12,7 +12,7 @@ from service.auth_service import verify_credentials
 
 user_router = APIRouter()
 
-@user_router.get("/users", summary="Get all users")
+@user_router.get("/get_users", summary="Get all users")
 async def get_users(_: HTTPBasicCredentials = Depends(verify_credentials)):
     try:
         cursor, connection = connect_to_db()
@@ -32,7 +32,7 @@ async def get_users(_: HTTPBasicCredentials = Depends(verify_credentials)):
         if cursor:
             cursor.close()
 
-@user_router.get("/stores", summary="Get all stores")
+@user_router.get("/get_stores", summary="Get all stores")
 async def get_stores(_: HTTPBasicCredentials = Depends(verify_credentials)):
     try:
         cursor = connect_to_db()
