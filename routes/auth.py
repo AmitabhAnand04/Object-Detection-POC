@@ -44,7 +44,7 @@ def login(request: LoginRequest, _: HTTPBasicCredentials = Depends(verify_creden
             if row["success"]:
                 return {
                     "success": True,
-                    "user_id": row["user_id"],
+                    "id": row["user_id"],
                     "user_type": row["user_type"],
                     "full_name": row["full_name"],
                 }
@@ -52,7 +52,7 @@ def login(request: LoginRequest, _: HTTPBasicCredentials = Depends(verify_creden
                 # Wrong username/password
                 return {
                     "success": False,
-                    "user_id": None,
+                    "id": None,
                     "user_type": None,
                     "full_name": None
                 }

@@ -2,6 +2,8 @@
 
 from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.security import HTTPBasicCredentials
+import psycopg2.extras
+from pydantic import BaseModel
 
 from database import connect_to_db
 from service.auth_service import verify_credentials
@@ -48,3 +50,32 @@ async def get_stores(_: HTTPBasicCredentials = Depends(verify_credentials)):
     finally:
         if cursor:
             cursor.close()
+
+# Request body schema
+class AssignVisitRequest(BaseModel):
+    manager_id: int
+    user_id: int
+    store_id: int
+    visit_date: str  # ISO format (YYYY-MM-DD)
+    
+@user_router.post("/assign_visit", summary="Assign visits")
+def assign_visit(request: AssignVisitRequest, _: HTTPBasicCredentials = Depends(verify_credentials)):
+    conn = None
+    try:
+        cur, conn = connect_to_db()
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(
+                "SELECT assign_visit(%s, %s, %s, %s)",
+                (request.manager_id, request.user_id, request.store_id, request.visit_date),
+            )
+            row = cursor.fetchone()
+            conn.commit()
+
+            return {"assignment_id": row["assign_visit"] if row else None}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    finally:
+        if conn:
+            conn.close()
