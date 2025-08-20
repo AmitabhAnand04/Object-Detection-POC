@@ -35,7 +35,7 @@ async def get_users(_: HTTPBasicCredentials = Depends(verify_credentials)):
 @user_router.get("/get_stores", summary="Get all stores")
 async def get_stores(_: HTTPBasicCredentials = Depends(verify_credentials)):
     try:
-        cursor = connect_to_db()
+        cursor, connection = connect_to_db()
         if cursor is None:
             raise HTTPException(status_code=500, detail="Database connection failed")
         
