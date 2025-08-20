@@ -9,7 +9,8 @@ from typing import List
 import uvicorn
 from dotenv import load_dotenv, find_dotenv
 from routes.auth import auth_router
-from routes.users import user_router
+from routes.manager import manager_router
+from routes.user import user_router
 
 load_dotenv(find_dotenv())
 
@@ -40,7 +41,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
-app.include_router(user_router, prefix="/user", tags=["gifts"])
+app.include_router(manager_router, prefix="/manager", tags=["manager"])
+app.include_router(user_router, prefix="/user", tags=["user"])
 # @app.post("/analyze-image", summary="Analyze Image for Objects and Brands")
 # async def analyze_image(
 #     file: UploadFile = File(...),
