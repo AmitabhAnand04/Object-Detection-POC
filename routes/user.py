@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, File, UploadFile, Form, Depends, HTTPException
 from typing import List
 from azure.storage.blob import BlobServiceClient
@@ -10,8 +11,8 @@ from database import connect_to_db
 from service.auth_service import verify_credentials
 
 
-BLOB_CONTAINER_NAME = "fridge-audit-container"
-BLOB_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=safridgeaudit;AccountKey=nwb4PbUAYzkpSw3L/73tTmJfU8sZlQzXf3DvHiQnIuUkqOCvDWqOPJHRp14Kqf4dApeqU9eCjfjX+AStP+Vkfw==;EndpointSuffix=core.windows.net"
+BLOB_CONTAINER_NAME = os.getenv("BLOB_CONTAINER_NAME")
+BLOB_CONNECTION_STRING = os.getenv("BLOB_CONNECTION_STRING")
 user_router = APIRouter()
 
 @user_router.get("/get_visits", summary="Get visits for the user")
