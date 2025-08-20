@@ -19,7 +19,7 @@ async def get_users(_: HTTPBasicCredentials = Depends(verify_credentials)):
         if cursor is None:
             raise HTTPException(status_code=500, detail="Database connection failed")
         
-        cursor.execute("SELECT user_id, username, email FROM users;")
+        cursor.execute("SELECT user_id, username, email FROM users WHERE user_type = 'employee';")
         users = cursor.fetchall()
         column_names = [desc[0] for desc in cursor.description]
         users_dict = [dict(zip(column_names, row)) for row in users]
