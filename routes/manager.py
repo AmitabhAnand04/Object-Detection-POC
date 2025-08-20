@@ -10,9 +10,9 @@ from service.auth_service import verify_credentials
 
 
 
-user_router = APIRouter()
+manager_router = APIRouter()
 
-@user_router.get("/get_users", summary="Get all users")
+@manager_router.get("/get_users", summary="Get all users")
 async def get_users(_: HTTPBasicCredentials = Depends(verify_credentials)):
     try:
         cursor, connection = connect_to_db()
@@ -32,7 +32,7 @@ async def get_users(_: HTTPBasicCredentials = Depends(verify_credentials)):
         if cursor:
             cursor.close()
 
-@user_router.get("/get_stores", summary="Get all stores")
+@manager_router.get("/get_stores", summary="Get all stores")
 async def get_stores(_: HTTPBasicCredentials = Depends(verify_credentials)):
     try:
         cursor = connect_to_db()
@@ -58,7 +58,7 @@ class AssignVisitRequest(BaseModel):
     store_id: int
     visit_date: str  # ISO format (YYYY-MM-DD)
     
-@user_router.post("/assign_visit", summary="Assign visits")
+@manager_router.post("/assign_visit", summary="Assign visits")
 def assign_visit(request: AssignVisitRequest, _: HTTPBasicCredentials = Depends(verify_credentials)):
     conn = None
     try:
@@ -72,6 +72,74 @@ def assign_visit(request: AssignVisitRequest, _: HTTPBasicCredentials = Depends(
             conn.commit()
 
             return {"assignment_id": row["assign_visit"] if row else None}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    finally:
+        if conn:
+            conn.close()
+
+@manager_router.get("/get_visits", summary="Get all assigned visits")
+def get_visits(manager_id: int, _: HTTPBasicCredentials = Depends(verify_credentials)):
+    conn = None
+    try:
+        cur, conn = connect_to_db()
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(
+                """
+                SELECT 
+                    sa.assignment_id,
+                    sa.user_id,
+                    u.username,
+                    s.store_name,
+                    sa.assigned_visit_date
+                FROM public.storeassignments sa
+                JOIN public.users u ON sa.user_id = u.user_id
+                JOIN public.stores s ON sa.store_id = s.store_id
+                WHERE sa.status = 'assigned'
+                  AND sa.assigned_by = %s
+                """,
+                (manager_id,)
+            )
+            rows = cursor.fetchall()
+
+            return {"visits": rows}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    finally:
+        if conn:
+            conn.close()
+
+@manager_router.get("/get_completed_visits", summary="Get all completed visits")
+def get_visit_images(manager_id: int, _: HTTPBasicCredentials = Depends(verify_credentials)):
+    conn = None
+    try:
+        cur, conn = connect_to_db()
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(
+                """
+                SELECT 
+                    sai.image_id,
+                    sa.assignment_id,
+                    s.store_name,
+                    u.username AS employee_name,
+                    sa.assigned_visit_date,
+                    sa.actual_visit_date,
+                    sai.status   -- <-- status from storeassignmentimages
+                FROM public.storeassignmentimages sai
+                JOIN public.storeassignments sa ON sai.assignment_id = sa.assignment_id
+                JOIN public.users u ON sa.user_id = u.user_id
+                JOIN public.stores s ON sa.store_id = s.store_id
+                WHERE sa.assigned_by = %s
+                """,
+                (manager_id,)
+            )
+            rows = cursor.fetchall()
+
+            return {"visits": rows}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
