@@ -165,9 +165,17 @@ def get_visit_images(manager_id: int, _: HTTPBasicCredentials = Depends(verify_c
             conn.close()
 
 @manager_router.post("/analyse_visit", summary="Analyse completed visit")
-async def analyse_visit(assignment_id: int, background_tasks: BackgroundTasks):
+async def analyse_visit(assignment_id: int):
     # immediately schedule the job
-    background_tasks.add_task(run_analysis, assignment_id)
+    result = run_analysis(assignment_id=assignment_id)
 
     # manager doesn’t wait for analysis to finish
-    return {"status": "Analysis started", "assignment_id": assignment_id}
+    return {"status": "Analysis started", "assignment_id": assignment_id, "result": result}
+
+# @manager_router.post("/analyse_visit", summary="Analyse completed visit")
+# async def analyse_visit(assignment_id: int, background_tasks: BackgroundTasks):
+#     # immediately schedule the job
+#     background_tasks.add_task(run_analysis, assignment_id)
+
+#     # manager doesn’t wait for analysis to finish
+#     return {"status": "Analysis started", "assignment_id": assignment_id}
