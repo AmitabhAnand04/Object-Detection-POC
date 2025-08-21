@@ -1,11 +1,12 @@
 # apis for get_users, get_stores, assigned_visit
 
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, status, HTTPException
 from fastapi.security import HTTPBasicCredentials
 import psycopg2.extras
 from pydantic import BaseModel
 
 from database import connect_to_db
+from service.analysis_service import run_analysis
 from service.auth_service import verify_credentials
 
 
@@ -162,3 +163,11 @@ def get_visit_images(manager_id: int, _: HTTPBasicCredentials = Depends(verify_c
     finally:
         if conn:
             conn.close()
+
+@manager_router.post("/analyse_visit", summary="Analyse completed visit")
+async def analyse_visit(assignment_id: int, background_tasks: BackgroundTasks):
+    # immediately schedule the job
+    background_tasks.add_task(run_analysis, assignment_id)
+
+    # manager doesn’t wait for analysis to finish
+    return {"status": "Analysis started", "assignment_id": assignment_id}
