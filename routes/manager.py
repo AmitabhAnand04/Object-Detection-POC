@@ -122,18 +122,33 @@ def get_visit_images(manager_id: int, _: HTTPBasicCredentials = Depends(verify_c
             cursor.execute(
                 """
                 SELECT 
-                    sai.image_id,
                     sa.assignment_id,
                     s.store_name,
                     u.username AS employee_name,
                     sa.assigned_visit_date,
                     sa.actual_visit_date,
-                    sai.status   -- <-- status from storeassignmentimages
+                    sa.status, -- assignment status (not per image)
+                    json_agg(
+                        json_build_object(
+                            'image_id', sai.image_id,
+                            'image_url', sai.image_url,
+                            'status', sai.status,
+                            'found_sga_photo', sai.found_sga_photo,
+                            'auditable_photo', sai.auditable_photo,
+                            'purity', sai.purity,
+                            'chargeability', sai.chargeability,
+                            'abused', sai.abused,
+                            'emptyy', sai.emptyy
+                        )
+                    ) AS images
                 FROM public.storeassignmentimages sai
                 JOIN public.storeassignments sa ON sai.assignment_id = sa.assignment_id
                 JOIN public.users u ON sa.user_id = u.user_id
                 JOIN public.stores s ON sa.store_id = s.store_id
                 WHERE sa.assigned_by = %s
+                GROUP BY sa.assignment_id, s.store_name, u.username, 
+                        sa.assigned_visit_date, sa.actual_visit_date, sa.status;
+
                 """,
                 (manager_id,)
             )
