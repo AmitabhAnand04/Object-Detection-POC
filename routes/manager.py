@@ -19,7 +19,7 @@ async def get_users(_: HTTPBasicCredentials = Depends(verify_credentials)):
         if cursor is None:
             raise HTTPException(status_code=500, detail="Database connection failed")
         
-        cursor.execute("SELECT username, email FROM users;")
+        cursor.execute("SELECT user_id, username, email FROM users WHERE user_type = 'employee';")
         users = cursor.fetchall()
         column_names = [desc[0] for desc in cursor.description]
         users_dict = [dict(zip(column_names, row)) for row in users]
@@ -35,7 +35,11 @@ async def get_users(_: HTTPBasicCredentials = Depends(verify_credentials)):
 @manager_router.get("/get_stores", summary="Get all stores")
 async def get_stores(_: HTTPBasicCredentials = Depends(verify_credentials)):
     try:
+<<<<<<< HEAD
         cursor, connection = connect_to_db()
+=======
+        cursor, conn = connect_to_db()
+>>>>>>> 23c8bf3a303b9ad679f9b1e475f7e5841f65ae15
         if cursor is None:
             raise HTTPException(status_code=500, detail="Database connection failed")
         
