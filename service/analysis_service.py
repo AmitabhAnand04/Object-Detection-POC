@@ -58,60 +58,133 @@ def normalize_brand(name):
 def evaluate_cooler_smart(llm_response):
     """
     Evaluate cooler status with fuzzy matching for Coca-Cola brands.
-    
+
     Args:
         llm_response (dict): LLM output JSON with 'objects' list.
-        coca_cola_products (list): List of Coca-Cola product names.
-    
+
     Returns:
         dict: Evaluation results with purity, abused, empty, and non-Coca-Cola products.
+
+    Raises:
+        ValueError: If llm_response is not a dict or missing required keys.
+        RuntimeError: For unexpected processing errors.
     """
-    # Normalize Coca-Cola brand names
-    coca_cola_normalized = [normalize_brand(p) for p in coca_cola_products]
-    
-    objects = llm_response.get("objects", [])
-    
-    # Empty cooler check
-    if not objects:
+    try:
+        if not isinstance(llm_response, dict):
+            raise ValueError("llm_response must be a dictionary.")
+
+        # Normalize Coca-Cola brand names
+        coca_cola_normalized = [normalize_brand(p) for p in coca_cola_products]
+
+        objects = llm_response.get("objects", [])
+        if not isinstance(objects, list):
+            raise ValueError("'objects' field in llm_response must be a list.")
+
+        # Empty cooler check
+        if not objects:
+            return {
+                "chargeability_percentage": llm_response.get("chargeability_percentage"),
+                "auditable": llm_response.get("auditable"),
+                "purity": "Impure",
+                "abused": "Yes",
+                "empty": "Yes",
+                "non_coca_cola_products": []
+            }
+
+        coca_cola_count = 0
+        non_coca_cola = []
+
+        for obj in objects:
+            if not isinstance(obj, dict):
+                raise ValueError("Each item in 'objects' must be a dictionary.")
+
+            label = obj.get("label")
+            norm_label = normalize_brand(label)
+
+            if norm_label:
+                if any(norm_brand in norm_label or norm_label in norm_brand for norm_brand in coca_cola_normalized):
+                    coca_cola_count += 1
+                else:
+                    non_coca_cola.append(label)
+            else:
+                non_coca_cola.append(None)
+
+        purity = "Pure" if coca_cola_count == len(objects) else "Impure"
+        abused = "Yes" if coca_cola_count == 0 else "No"
+
         return {
             "chargeability_percentage": llm_response.get("chargeability_percentage"),
             "auditable": llm_response.get("auditable"),
-            "purity": "Impure",
-            "abused": "Yes",
-            "empty": "Yes",
-            "non_coca_cola_products": []
+            "purity": purity,
+            "abused": abused,
+            "empty": "No",
+            "non_coca_cola_products": non_coca_cola
         }
 
-    coca_cola_count = 0
-    non_coca_cola = []
+    except (ValueError, KeyError) as e:
+        raise ValueError(f"Invalid input in evaluate_cooler_smart: {e}")
 
-    for obj in objects:
-        label = obj.get("label")
-        norm_label = normalize_brand(label)
+    except Exception as e:
+        raise RuntimeError(f"Unexpected error in evaluate_cooler_smart: {e}")
+
+
+# def evaluate_cooler_smart(llm_response):
+#     """
+#     Evaluate cooler status with fuzzy matching for Coca-Cola brands.
+    
+#     Args:
+#         llm_response (dict): LLM output JSON with 'objects' list.
+#         coca_cola_products (list): List of Coca-Cola product names.
+    
+#     Returns:
+#         dict: Evaluation results with purity, abused, empty, and non-Coca-Cola products.
+#     """
+#     # Normalize Coca-Cola brand names
+#     coca_cola_normalized = [normalize_brand(p) for p in coca_cola_products]
+    
+#     objects = llm_response.get("objects", [])
+    
+#     # Empty cooler check
+#     if not objects:
+#         return {
+#             "chargeability_percentage": llm_response.get("chargeability_percentage"),
+#             "auditable": llm_response.get("auditable"),
+#             "purity": "Impure",
+#             "abused": "Yes",
+#             "empty": "Yes",
+#             "non_coca_cola_products": []
+#         }
+
+#     coca_cola_count = 0
+#     non_coca_cola = []
+
+#     for obj in objects:
+#         label = obj.get("label")
+#         norm_label = normalize_brand(label)
         
-        if norm_label:
-            # Check if normalized label contains or is contained in any Coca-Cola brand
-            if any(norm_brand in norm_label or norm_label in norm_brand for norm_brand in coca_cola_normalized):
-                coca_cola_count += 1
-            else:
-                non_coca_cola.append(label)
-        else:
-            non_coca_cola.append(None)  # null labels count as non-Coca-Cola
+#         if norm_label:
+#             # Check if normalized label contains or is contained in any Coca-Cola brand
+#             if any(norm_brand in norm_label or norm_label in norm_brand for norm_brand in coca_cola_normalized):
+#                 coca_cola_count += 1
+#             else:
+#                 non_coca_cola.append(label)
+#         else:
+#             non_coca_cola.append(None)  # null labels count as non-Coca-Cola
 
-    # Determine purity
-    purity = "Pure" if coca_cola_count == len(objects) else "Impure"
+#     # Determine purity
+#     purity = "Pure" if coca_cola_count == len(objects) else "Impure"
 
-    # Determine abused
-    abused = "Yes" if coca_cola_count == 0 else "No"
+#     # Determine abused
+#     abused = "Yes" if coca_cola_count == 0 else "No"
 
-    return {
-        "chargeability_percentage": llm_response.get("chargeability_percentage"),
-        "auditable": llm_response.get("auditable"),
-        "purity": purity,
-        "abused": abused,
-        "empty": "No",
-        "non_coca_cola_products": non_coca_cola
-    }
+#     return {
+#         "chargeability_percentage": llm_response.get("chargeability_percentage"),
+#         "auditable": llm_response.get("auditable"),
+#         "purity": purity,
+#         "abused": abused,
+#         "empty": "No",
+#         "non_coca_cola_products": non_coca_cola
+#     }
 
 def get_images(assignment_id: int):
     """
@@ -316,7 +389,7 @@ def run_analysis(assignment_id: int):
             print(f"   🔄 Updated storeassignmentimages for image_id={image_id}")
 
         except Exception as e:
-            print(f"❌ Error updating storeassignmentimages for image_id={image_id}: {e}")
+            raise RuntimeError(f"❌ Error updating storeassignmentimages for image_id={image_id}: {e}")
         finally:
             if connection:
                 connection.close()
@@ -334,7 +407,7 @@ def run_analysis(assignment_id: int):
         connection.commit()
         print(f"   🔄 Updated storeassignments status to 'analysed' for assignment_id={assignment_id}")
     except Exception as e:
-        print(f"❌ Error updating storeassignments for assignment_id={assignment_id}: {e}")
+        raise RuntimeError(f"❌ Error updating storeassignments for assignment_id={assignment_id}: {e}")
     finally:
         if connection:
             connection.close()
