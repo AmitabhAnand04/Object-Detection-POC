@@ -164,33 +164,33 @@ def get_visit_images(manager_id: int, _: HTTPBasicCredentials = Depends(verify_c
         if conn:
             conn.close()
 
-@manager_router.post("/analyse_visit", summary="Analyse completed visit")
-async def analyse_visit(assignment_id: int):
-    try:
-        logging.info(f"Received request to analyze assignment_id={assignment_id}")
+# @manager_router.post("/analyse_visit", summary="Analyse completed visit")
+# async def analyse_visit(assignment_id: int):
+#     try:
+#         logging.info(f"Received request to analyze assignment_id={assignment_id}")
 
-        # Run the analysis
-        result = run_analysis(assignment_id)
+#         # Run the analysis
+#         result = run_analysis(assignment_id)
 
-        logging.info(f"Analysis completed successfully for assignment_id={assignment_id}")
+#         logging.info(f"Analysis completed successfully for assignment_id={assignment_id}")
 
-        return {
-            "status": "Analysis started",
-            "assignment_id": assignment_id,
-            "result": result
-        }
+#         return {
+#             "status": "Analysis started",
+#             "assignment_id": assignment_id,
+#             "result": result
+#         }
 
-    except ValueError as ve:
-        logging.error(f"Validation error for assignment_id={assignment_id}: {ve}")
-        raise HTTPException(status_code=400, detail=str(ve))
+#     except ValueError as ve:
+#         logging.error(f"Validation error for assignment_id={assignment_id}: {ve}")
+#         raise HTTPException(status_code=400, detail=str(ve))
 
-    except ConnectionError as ce:
-        logging.error(f"Database/API connection error: {ce}")
-        raise HTTPException(status_code=503, detail="Service temporarily unavailable. Please try again later.")
+#     except ConnectionError as ce:
+#         logging.error(f"Database/API connection error: {ce}")
+#         raise HTTPException(status_code=503, detail="Service temporarily unavailable. Please try again later.")
 
-    except Exception as e:
-        logging.exception(f"Unexpected error during analysis for assignment_id={assignment_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Unexpected error during analysis for assignment_id={assignment_id}: {e}")
+#     except Exception as e:
+#         logging.exception(f"Unexpected error during analysis for assignment_id={assignment_id}: {e}")
+#         raise HTTPException(status_code=500, detail=f"Unexpected error during analysis for assignment_id={assignment_id}: {e}")
 
 # @manager_router.post("/analyse_visit", summary="Analyse completed visit")
 # async def analyse_visit(assignment_id: int):
@@ -200,10 +200,10 @@ async def analyse_visit(assignment_id: int):
 #     # manager doesn’t wait for analysis to finish
 #     return {"status": "Analysis started", "assignment_id": assignment_id, "result": result}
 
-# @manager_router.post("/analyse_visit", summary="Analyse completed visit")
-# async def analyse_visit(assignment_id: int, background_tasks: BackgroundTasks):
-#     # immediately schedule the job
-#     background_tasks.add_task(run_analysis, assignment_id)
+@manager_router.post("/analyse_visit", summary="Analyse completed visit")
+async def analyse_visit(assignment_id: int, background_tasks: BackgroundTasks):
+    # immediately schedule the job
+    background_tasks.add_task(run_analysis, assignment_id)
 
-#     # manager doesn’t wait for analysis to finish
-#     return {"status": "Analysis started", "assignment_id": assignment_id}
+    # manager doesn’t wait for analysis to finish
+    return {"status": "Analysis started", "assignment_id": assignment_id}
