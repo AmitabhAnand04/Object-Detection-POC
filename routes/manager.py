@@ -4,7 +4,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, status, HTTPException
 from fastapi.security import HTTPBasicCredentials
 import psycopg2.extras
 from pydantic import BaseModel
-
+import logging
 from database import connect_to_db
 from service.analysis_service import run_analysis
 from service.auth_service import verify_credentials
@@ -166,11 +166,39 @@ def get_visit_images(manager_id: int, _: HTTPBasicCredentials = Depends(verify_c
 
 @manager_router.post("/analyse_visit", summary="Analyse completed visit")
 async def analyse_visit(assignment_id: int):
-    # immediately schedule the job
-    result = run_analysis(assignment_id=assignment_id)
+    try:
+        logging.info(f"Received request to analyze assignment_id={assignment_id}")
 
-    # manager doesn’t wait for analysis to finish
-    return {"status": "Analysis started", "assignment_id": assignment_id, "result": result}
+        # Run the analysis
+        result = run_analysis(assignment_id)
+
+        logging.info(f"Analysis completed successfully for assignment_id={assignment_id}")
+
+        return {
+            "status": "Analysis started",
+            "assignment_id": assignment_id,
+            "result": result
+        }
+
+    except ValueError as ve:
+        logging.error(f"Validation error for assignment_id={assignment_id}: {ve}")
+        raise HTTPException(status_code=400, detail=str(ve))
+
+    except ConnectionError as ce:
+        logging.error(f"Database/API connection error: {ce}")
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable. Please try again later.")
+
+    except Exception as e:
+        logging.exception(f"Unexpected error during analysis for assignment_id={assignment_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error. Check logs for details.")
+
+# @manager_router.post("/analyse_visit", summary="Analyse completed visit")
+# async def analyse_visit(assignment_id: int):
+#     # immediately schedule the job
+#     result = run_analysis(assignment_id=assignment_id)
+
+#     # manager doesn’t wait for analysis to finish
+#     return {"status": "Analysis started", "assignment_id": assignment_id, "result": result}
 
 # @manager_router.post("/analyse_visit", summary="Analyse completed visit")
 # async def analyse_visit(assignment_id: int, background_tasks: BackgroundTasks):
