@@ -190,7 +190,7 @@ async def analyse_visit(assignment_id: int):
 
     except Exception as e:
         logging.exception(f"Unexpected error during analysis for assignment_id={assignment_id}: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error. Check logs for details.")
+        raise HTTPException(status_code=500, detail=f"Unexpected error during analysis for assignment_id={assignment_id}: {e}")
 
 # @manager_router.post("/analyse_visit", summary="Analyse completed visit")
 # async def analyse_visit(assignment_id: int):
