@@ -71,7 +71,7 @@ def evaluate_cooler_smart(llm_response):
     """
     try:
         if not isinstance(llm_response, dict):
-            raise ValueError("llm_response must be a dictionary.")
+            raise ValueError("llm_response must be a dictionary. but it is: " + str(llm_response))
 
         # Normalize Coca-Cola brand names
         coca_cola_normalized = [normalize_brand(p) for p in coca_cola_products]
