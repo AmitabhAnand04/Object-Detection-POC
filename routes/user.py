@@ -27,12 +27,27 @@ def get_user_visits(user_id: int, _: HTTPBasicCredentials = Depends(verify_crede
                     sa.assignment_id,
                     s.store_name,
                     sa.assigned_visit_date,
+                    sa.actual_visit_date,
                     m.username AS assigned_by,
-                    sa.status
+                    sa.status,
+                    COALESCE(
+                        json_agg(
+                            json_build_object(
+                                'image_id', sai.image_id,
+                                'image_url', sai.image_url,
+                                'status', sai.status
+                            )
+                        ) FILTER (WHERE sai.image_id IS NOT NULL), '[]'
+                    ) AS images
                 FROM public.storeassignments sa
-                JOIN public.stores s ON sa.store_id = s.store_id
-                JOIN public.users m ON sa.assigned_by = m.user_id   -- manager name
+                JOIN public.stores s 
+                    ON sa.store_id = s.store_id
+                JOIN public.users m 
+                    ON sa.assigned_by = m.user_id
+                LEFT JOIN public.storeassignmentimages sai
+                    ON sa.assignment_id = sai.assignment_id
                 WHERE sa.user_id = %s
+                GROUP BY sa.assignment_id, s.store_name, sa.assigned_visit_date, m.username, sa.status;
                 """,
                 (user_id,)
             )

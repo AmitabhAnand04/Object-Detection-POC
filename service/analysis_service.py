@@ -278,7 +278,7 @@ def found_sga_photo(file: Image.Image) -> str:
         print(f"failed at pos 4 - Exception: {e}")
         return "No"
 
-def identify_objects_direct_from_file(file: Image.Image):
+def identify_objects_direct_from_file(file: Image.Image) -> dict:
     """
     Identifies objects and brands from a binary image file using Gemini API.
 
@@ -343,7 +343,7 @@ def run_analysis(assignment_id: int):
         found_sga_result = found_sga_photo(pil_img)
 
         object_result_raw = identify_objects_direct_from_file(pil_img)
-
+        objects_present = object_result_raw.get("objects", [])
         # Step 6: Pass raw object detection result to cooler evaluator
         object_result = evaluate_cooler_smart(object_result_raw)
 
@@ -377,12 +377,13 @@ def run_analysis(assignment_id: int):
                     purity = %s,
                     chargeability = %s,
                     abused = %s,
-                    emptyy = %s
+                    emptyy = %s,
+                    detected_objects = %s
                 WHERE image_id = %s
             """
             cursor.execute(update_img_query, (
                 "analysed", found_sga_result, auditable, purity,
-                chargeability, abused, emptyy, image_id
+                chargeability, abused, emptyy, str(objects_present), image_id
             ))
 
             connection.commit()

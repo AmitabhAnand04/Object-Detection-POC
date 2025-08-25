@@ -139,7 +139,8 @@ def get_visit_images(manager_id: int, _: HTTPBasicCredentials = Depends(verify_c
                             'purity', sai.purity,
                             'chargeability', sai.chargeability,
                             'abused', sai.abused,
-                            'emptyy', sai.emptyy
+                            'emptyy', sai.emptyy,
+                            'detected_objects', sai.detected_objects
                         )
                     ) AS images
                 FROM public.storeassignmentimages sai
