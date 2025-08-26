@@ -1,6 +1,6 @@
 # apis for get_users, get_stores, assigned_visit
 
-from fastapi import APIRouter, BackgroundTasks, Depends, status, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, Response, status, HTTPException
 from fastapi.security import HTTPBasicCredentials
 import psycopg2.extras
 from pydantic import BaseModel
@@ -8,6 +8,7 @@ import logging
 from database import connect_to_db
 from service.analysis_service import run_analysis
 from service.auth_service import verify_credentials
+from service.report_service import create_pdf_report
 
 
 
@@ -208,3 +209,15 @@ async def analyse_visit(assignment_id: int, background_tasks: BackgroundTasks):
 
     # manager doesn’t wait for analysis to finish
     return {"status": "Analysis started", "assignment_id": assignment_id}
+
+@manager_router.get("/report", summary="Generate PDF Report for a Visit")
+async def generate_report(assignment_id: int):
+    pdf_bytes = create_pdf_report(assignment_id)
+    if not pdf_bytes:
+        raise HTTPException(status_code=404, detail="No data found for this assignment.")
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"inline; filename=report_{assignment_id}.pdf"}
+    )

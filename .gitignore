@@ -3,3 +3,6 @@ app.py
 .venv
 __pycache__/
 test.py
+identify.py
+cooler_evaluator.py
+coca-cola_products.json

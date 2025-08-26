@@ -15,9 +15,4 @@ def connect_to_db():
     except Exception as e:
         print(f"Error connecting to database: {e}")
         return None
-    # finally:
-        # print(connection)
-    #     if connection:
-    #         cursor.close()
-    #         # connection.close()
-    #         # print("PostgreSQL connection is closed")    
+ 

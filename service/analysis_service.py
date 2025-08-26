@@ -127,65 +127,6 @@ def evaluate_cooler_smart(llm_response):
     except Exception as e:
         raise RuntimeError(f"Unexpected error in evaluate_cooler_smart: {e}")
 
-
-# def evaluate_cooler_smart(llm_response):
-#     """
-#     Evaluate cooler status with fuzzy matching for Coca-Cola brands.
-    
-#     Args:
-#         llm_response (dict): LLM output JSON with 'objects' list.
-#         coca_cola_products (list): List of Coca-Cola product names.
-    
-#     Returns:
-#         dict: Evaluation results with purity, abused, empty, and non-Coca-Cola products.
-#     """
-#     # Normalize Coca-Cola brand names
-#     coca_cola_normalized = [normalize_brand(p) for p in coca_cola_products]
-    
-#     objects = llm_response.get("objects", [])
-    
-#     # Empty cooler check
-#     if not objects:
-#         return {
-#             "chargeability_percentage": llm_response.get("chargeability_percentage"),
-#             "auditable": llm_response.get("auditable"),
-#             "purity": "Impure",
-#             "abused": "Yes",
-#             "empty": "Yes",
-#             "non_coca_cola_products": []
-#         }
-
-#     coca_cola_count = 0
-#     non_coca_cola = []
-
-#     for obj in objects:
-#         label = obj.get("label")
-#         norm_label = normalize_brand(label)
-        
-#         if norm_label:
-#             # Check if normalized label contains or is contained in any Coca-Cola brand
-#             if any(norm_brand in norm_label or norm_label in norm_brand for norm_brand in coca_cola_normalized):
-#                 coca_cola_count += 1
-#             else:
-#                 non_coca_cola.append(label)
-#         else:
-#             non_coca_cola.append(None)  # null labels count as non-Coca-Cola
-
-#     # Determine purity
-#     purity = "Pure" if coca_cola_count == len(objects) else "Impure"
-
-#     # Determine abused
-#     abused = "Yes" if coca_cola_count == 0 else "No"
-
-#     return {
-#         "chargeability_percentage": llm_response.get("chargeability_percentage"),
-#         "auditable": llm_response.get("auditable"),
-#         "purity": purity,
-#         "abused": abused,
-#         "empty": "No",
-#         "non_coca_cola_products": non_coca_cola
-#     }
-
 def get_images(assignment_id: int):
     """
     Fetch all image IDs and URLs for a given assignment ID.
