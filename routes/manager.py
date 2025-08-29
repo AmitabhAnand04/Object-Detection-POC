@@ -212,7 +212,7 @@ async def analyse_visit(assignment_id: int, background_tasks: BackgroundTasks):
 
 @manager_router.get("/report", summary="Generate PDF Report for a Visit")
 async def generate_report(assignment_id: int):
-    pdf_bytes = create_pdf_report(assignment_id)
+    pdf_bytes = await create_pdf_report(assignment_id)
     if not pdf_bytes:
         raise HTTPException(status_code=404, detail="No data found for this assignment.")
     

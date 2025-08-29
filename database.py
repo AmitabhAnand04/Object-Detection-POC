@@ -1,9 +1,11 @@
+import os
 import psycopg2
-
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 def connect_to_db():
     try:
         # Connect to your postgres DB
-        connection = psycopg2.connect(user="admin_bengal_beverage", password="ZTrail1234@#$", host="server-bengal-beverage.postgres.database.azure.com", port=5432, database="fridge_audit")
+        connection = psycopg2.connect(user=os.getenv("DB_USER"), password=os.getenv("DB_PASSWORD"), host=os.getenv("DB_HOST"), port=os.getenv("DB_PORT"), database=os.getenv("DB_NAME"))
         
         print(connection)
         

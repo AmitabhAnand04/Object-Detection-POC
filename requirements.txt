@@ -47,3 +47,4 @@ psycopg2-binary
 asyncpg
 azure-storage-blob
 reportlab
+aiohttp
